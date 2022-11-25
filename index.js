@@ -22,7 +22,7 @@ const DB_EXERCISE = []
 app.post('/api/users', (req, res) => {
 	const { username } = req.body
 
-	const id = DB_USER.length + 1
+	const id = (DB_USER.length + 1).toString()
 	DB_USER.push({
 		_id: id,
 		username,
@@ -67,18 +67,24 @@ app.post('/api/users/:id/exercises', (req, res) => {
 
 // it just a example don't do this shit
 app.get('/api/users/:id/logs', (req, res) => {
-	const userData = DB_USER.find((row) => row._id == req.params.id)
+	const userData = DB_USER.find((row) => row._id === req.params.id)
 	if (userData) {
 		const { from, to, limit } = req.query
-		const exerciseData = DB_EXERCISE.filter((row) => row._id == req.params.id)
+		const exerciseData = DB_EXERCISE.filter((row) => row._id === req.params.id)
 		const filteredExercise = []
 
 		let limited = 0
 
-		for (row of exerciseData.slice(Number(from || 0), Number(to || 99999))) {
+		for (row of exerciseData) {
 			if (limited < Number(limit || 99999)) {
-				filteredExercise.push(row)
-				limited++
+				const rowDate = new Date(Date.parse(row.date))
+				const fromDate = new Date(Date.parse(from || row.date))
+				const toDate = new Date(Date.parse(to || row.date))
+
+				if (rowDate.getTime() >= fromDate.getTime() && rowDate.getTime() <= toDate.getTime()) {
+					filteredExercise.push(row)
+					limited++
+				}
 			}
 		}
 
